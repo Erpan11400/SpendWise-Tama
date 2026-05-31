@@ -15,7 +15,7 @@ const putAccessToken = (data) => {
 }
 
 const putRefreshToken = (data) => {
-    return localStorage.setItem('refreshToken' , data)
+    return localStorage.setItem('refreshToken', data)
 }
 
 const route = axios.create({
@@ -44,7 +44,7 @@ const login = async (email, password) => {
 }
 
 const logout = async () => {
-    return route.delete('authentication', {
+    return route.delete('/authentication', {
         data: { refreshToken: getRefreshToken() },
         headers: {
             Authorization: `Bearer ${getAccessToken()}`
@@ -158,6 +158,14 @@ const deleteTransaction = async (transaction_id) => {
     })
 }
 
+const getIncomeAndExpense = async (bulan, tahun) => {
+    return route.get(`/transactions/${bulan}/${tahun}`, {
+        headers: {
+            Authorization: `Bearer ${getAccessToken()}`
+        }
+    })
+}
+
 export {
     getAccessToken,
     putAccessToken,
@@ -181,4 +189,5 @@ export {
     getTransactionById,
     updateTransaction,
     deleteTransaction,
+    getIncomeAndExpense,
 }

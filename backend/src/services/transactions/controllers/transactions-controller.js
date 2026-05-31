@@ -94,11 +94,20 @@ const deleteTransaction = (req, res, next) => {
     return response(res, 200, 'Berhasil menghapus transaction')
 }
 
+const getIncomeAndExpense = (req, res, next) => {
+    const { id: user_id } = req.user
+    const { bulan, tahun } = req.params
+
+    const transactions = TransactionsRepositories.getIncomeAndExpense(user_id, bulan, tahun)
+    return response(res, 200, 'Berhasil menampilkan data', transactions)
+}
+
 
 export {
     createTransaction,
     getAllTransactions,
     getTransactionById,
     updateTransactions,
-    deleteTransaction
+    deleteTransaction,
+    getIncomeAndExpense,
 }

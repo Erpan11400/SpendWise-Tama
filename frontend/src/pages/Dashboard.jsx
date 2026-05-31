@@ -11,6 +11,7 @@ import EditBudgeting from '../components/EditBudgeting'
 import useAppContext from '../contexts/AppContext'
 import { getBudget, getWallet } from '../utils/requestAPi';
 import PeriodeDropdown from '../components/PeriodeDropdown';
+import ChartComponent from '../components/ChartComponent';
 
 export default function Dashboard() {
   const { userName } = useAppContext().user
@@ -119,10 +120,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className='d-flex align-items-center gap-5'>
-        <BlockTips className='bg-yellow bg-opacity-50 p-2 w-50 border border-3 border-yellow rounded-4' message='Sebaiknya anda mengurasi jajan, karena sisa pada bulan ini sudah menipis' />
-        <BlockTips className='bg-green bg-opacity-50 p-2 w-50 border border-3 border-green rounded-4' message='Sebaiknya anda mengurasi jajan, karena sisa pada bulan ini sudah menipis' />
-      </div>
+      <ChartComponent bulan={bulan} tahun={tahun} />
 
       {
         addModal ? (

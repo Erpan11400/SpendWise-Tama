@@ -45,19 +45,34 @@ export default function Wallet() {
                 </h2>
 
                 {wallets.map((item, index) => (
-                    <div
-                        key={index}
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            padding: "15px",
-                            border: "1px solid #ddd",
-                            borderRadius: "10px",
-                            marginBottom: "10px",
-                        }}
-                    >
-                        <span>{item.name}</span>
-                        <span>Rp {item.amount.toLocaleString()}</span>
+                    <div key={index} className="p-3 mb-2 bg-white border border-light-subtle rounded-4 d-flex justify-content-between align-items-center shadow-sm">
+                        {/* Sisi Kiri: Gambar Persegi Panjang + Nama */}
+                        <div className="d-flex align-items-center gap-3">
+                            {/* Bingkai Gambar Persegi Panjang */}
+                            <div
+                                className="d-flex align-items-center justify-content-center bg-light rounded-3 overflow-hidden border"
+                                style={{ width: '65px', height: '40px' }} // Rasio persegi panjang yang pas untuk logo bank
+                            >
+                                <img
+                                    src={`/asset-wallet-logos/${item.name}.png`}
+                                    alt={item.name}
+                                    className="w-100 h-100 object-fit-contain p-1"
+                                />
+                            </div>
+
+                            {/* Detail Nama Akun */}
+                            <div>
+                                <span className="fw-bold text-dark d-block fs-6">{item.name}</span>
+                                <small className="text-muted" style={{ fontSize: '0.75rem' }}>Metode Pembayaran</small>
+                            </div>
+                        </div>
+
+                        {/* Sisi Kanan: Nominal Saldo */}
+                        <div className="text-end">
+                            <span className="fs-5 fw-bolder text-purple">
+                                Rp {item.amount.toLocaleString()}
+                            </span>
+                        </div>
                     </div>
                 ))}
             </div>

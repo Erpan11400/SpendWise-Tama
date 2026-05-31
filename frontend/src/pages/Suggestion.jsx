@@ -16,7 +16,7 @@ export default function Suggestion() {
           </div>
           <div>
             <h2 className='m-0 fs-3' style={{ height: '34px' }}>Suggestion</h2>
-            <p className='m-0'>Optimalkan pengeluaran anda dengan rekomendasi cerdas</p>
+            <p className='m-0'><span className='opacity-50'>Optimalkan pengeluaran anda dengan rekomendasi cerdas</span> 🤩</p>
           </div>
         </div>
       </div>

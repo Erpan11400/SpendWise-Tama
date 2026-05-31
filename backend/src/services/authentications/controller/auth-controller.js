@@ -20,6 +20,20 @@ const login = async (req, res, next) => {
     response(res, 200, 'Berhasil melakukan login', { accessToken, refreshToken })
 }
 
+const refreshToken = async (req, res, next) => {
+    const { refreshToken } = req.body
+
+    const tokenIsvalid = await AuthRepositories.verifyRefreshToken(refreshToken)
+    if (!tokenIsvalid) {
+        return response(res, 400, 'Refresh Token tidak valid')
+    }
+
+    const { id } = await TokenManager.verifyRefreshToken(refreshToken)
+    const accessToken = await TokenManager.generateAccessToken({ id })
+
+    return response(res, 200, 'Access Token berhasil diperbarui', { accessToken })
+}
+
 const logout = async (req, res, next) => {
     const { refreshToken } = req.body
 
@@ -35,5 +49,6 @@ const logout = async (req, res, next) => {
 
 export {
     login,
+    refreshToken,
     logout
 }

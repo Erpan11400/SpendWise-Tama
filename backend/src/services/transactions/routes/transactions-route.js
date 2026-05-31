@@ -4,6 +4,7 @@ import {
     createTransaction,
     deleteTransaction,
     getAllTransactions,
+    getIncomeAndExpense,
     getTransactionById,
     updateTransactions
 } from "../controllers/transactions-controller.js";
@@ -16,6 +17,7 @@ router.post('/', createTransaction)
 router.get('/', getAllTransactions)
 router.put('/:transaction_id', updateTransactions)
 router.get('/:transaction_id', getTransactionById)
+router.get('/:bulan/:tahun', getIncomeAndExpense)
 router.delete('/:transaction_id', deleteTransaction)
 
 export default router

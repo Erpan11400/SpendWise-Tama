@@ -12,6 +12,7 @@ import {
     updateTransaction
 } from '../utils/requestAPi';
 import { useEffect } from 'react';
+import { IoWalletOutline } from 'react-icons/io5';
 
 export default function Transaction() {
     const inputStyle = {
@@ -150,7 +151,7 @@ export default function Transaction() {
                     </div>
                     <div>
                         <h2 className='m-0 fs-3' style={{ height: '34px' }}>Transaction</h2>
-                        <p className='m-0'>Perhatikan setiap transaksimu 👌</p>
+                        <p className='m-0'><span className='opacity-50'>Perhatikan setiap transaksimu</span> 👌</p>
                     </div>
                 </div>
                 <button
@@ -189,20 +190,43 @@ export default function Transaction() {
                 {
                     transactions.length > 0 ? (
                         transactions.map((item) => (
-                            <div key={item.id} className='p-2 border-1 border-bottom border-gray'>
-                                <div>
-                                    <p className='m-0'>{item.date}</p>
-                                </div>
-                                <div className='d-flex justify-content-between align-items-center'>
-                                    <p className='m-0 fw-semibold'>{item.descript}</p>
-                                    <div className='d-flex gap-2 align-items-center'>
-                                        <span style={{ color: item.amount < 0 ? "red" : "green" }}>
-                                            {item.amount < 0 ? "-Rp " : "Rp "}
-                                            {Math.abs(item.amount).toLocaleString()}
-                                        </span>
+                            <div key={item.id} className='mb-3 p-3 bg-white d-flex align-items-start gap-4 hover-bg-light rounded-4 shadow-sm'>
 
-                                        <button className='bg-yellow px-3 py-1 border-0 rounded-2' onClick={() => handleEdit(item.id)}>Edit</button>
-                                        <button className='bg-red px-3 py-1 border-0 rounded-2 text-white' onClick={() => handleDelete(item.id)}>Hapus</button>
+                                <div className='text-center text-muted border-end pe-4' style={{ minWidth: '90px' }}>
+                                    <span className='d-block fw-bold fs-6 text-dark'>{item.date.split('-')[2]}</span>
+                                    <small style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                                        {new Date(item.date).toLocaleString('id-ID', { month: 'short' })} '{item.date.split('-')[0].substring(2)}
+                                    </small>
+                                </div>
+
+                                <div className='flex-grow-1 d-flex justify-content-between align-items-center'>
+                                    <div>
+                                        <p className='m-0 fw-semibold text-secondary-emphasis fs-6'>{item.descript}</p>
+                                        <div className='d-flex gap-2 mt-1 align-items-center'>
+                                            <span className='text-muted small'><IoWalletOutline size={18} /> {item.wallet}</span>
+                                            {
+                                                item.type === 'Pengeluaran' && (
+                                                    <>
+                                                        <span className='text-muted small'>•</span>
+                                                        <div className='d-flex align-items-center gap-2 mt-1'>
+                                                            <span className='badge bg-secondary bg-opacity-10 text-secondary fw-semibold' style={{ fontSize: '0.75rem' }}>{item.category}</span>
+                                                        </div>
+                                                    </>
+                                                )
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div className='text-end d-flex align-items-center gap-3'>
+                                        <div>
+                                            <p className={`m-0 fw-bold ${item.amount < 0 ? "text-danger" : "text-success"}`}>
+                                                {item.amount < 0 ? "-" : "+"} Rp {Math.abs(item.amount).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div className='d-flex gap-2'>
+                                            <button className='btn btn-sm btn-secondary bg-opacity-10 border-0 rounded-pill px-3 text-dark' style={{ backgroundColor: '#FEF08A' }} onClick={() => handleEdit(item.id)}>Edit</button>
+                                            <button className='btn btn-sm btn-danger border-0 rounded-pill px-3' onClick={() => handleDelete(item.id)}>Hapus</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
