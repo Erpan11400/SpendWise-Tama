@@ -1,24 +1,21 @@
+import db from '../../../database/sqlite.js';
+
 /* 
  * token
  */
 
 class AuthenticationsRepositories {
-    constructor() {
-        this.auth = []
-    }
-
     addRefreshToken(token) {
-        const newRefreshToken = { token }
-        this.auth.push(newRefreshToken)
+        db.prepare('INSERT OR IGNORE INTO refresh_tokens (token) VALUES (?)').run(token)
     }
 
     verifyRefreshToken(token) {
-        return this.auth.some((item) => item.token === token)
+        const row = db.prepare('SELECT token FROM refresh_tokens WHERE token = ?').get(token)
+        return Boolean(row)
     }
 
     deleteRefreshToken(token) {
-        const newAuth = this.auth.filter((item) => item.token !== token)
-        this.auth = newAuth
+        db.prepare('DELETE FROM refresh_tokens WHERE token = ?').run(token)
     }
 }
 

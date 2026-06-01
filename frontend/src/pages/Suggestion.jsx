@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getAccessToken } from '../utils/requestAPi';
 import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
 import { BsCalendarMonth, BsInfoCircle, BsGraphUpArrow, BsLightbulb } from 'react-icons/bs';
 import { FaRobot } from 'react-icons/fa';
@@ -13,10 +14,17 @@ export default function Suggestion() {
 
     useEffect(() => {
         const fetchInsights = async () => {
-            try {
-                const res = await axios.get('http://localhost:3000/ai/insights');
+                try {
+                const res = await axios.get('http://localhost:3000/ai/insights', {
+                    headers: {
+                        Authorization: `Bearer ${getAccessToken()}`
+                    }
+                });
                 if (res.data.success) {
-                    setInsights(res.data.insights);
+                    const data = res.data.insights;
+                    const items = Array.isArray(data) ? data : (data ? [data] : []);
+                    setInsights(items);
+                    setError('');
                 }
             } catch (err) {
                 console.error(err);
@@ -28,7 +36,11 @@ export default function Suggestion() {
 
         const fetchPrediction = async () => {
             try {
-                const res = await axios.get('http://localhost:3000/ai/prediction');
+                const res = await axios.get('http://localhost:3000/ai/prediction', {
+                    headers: {
+                        Authorization: `Bearer ${getAccessToken()}`
+                    }
+                });
                 if (res.data.success) {
                     setPrediction(res.data);
                 }

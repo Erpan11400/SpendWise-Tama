@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import db from '../../../database/sqlite.js'
 
 /* 
  * id
@@ -11,44 +12,45 @@ import { nanoid } from 'nanoid'
  * created_at */
 
 class TransactionsRepositories {
-    constructor() {
-        this.transactions = []
-    }
-
     createTransaction(user_id, type, descript, amount, category, wallet, date) {
         const id = `trs-${nanoid(16)}`
 
-        const newTransaction = { id, user_id, type, descript, amount, category, wallet, date }
-
-        this.transactions.push(newTransaction)
+        db.prepare(
+            'INSERT INTO transactions (id, user_id, type, descript, amount, category, wallet, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(id, user_id, type, descript, amount, category, wallet, date)
 
         return id
     }
 
     getTransactionById(id) {
-        return this.transactions.find(trans => trans.id === id)
+        return db.prepare('SELECT * FROM transactions WHERE id = ?').get(id)
     }
 
     getAllTransaction(user_id) {
-        const usedData = this.transactions.filter(trans => trans.user_id === user_id)
-
-        return usedData.reverse()
+        return db
+            .prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC')
+            .all(user_id)
     }
 
     updateTransaction(id, user_id, newTransaction) {
-        const index = this.transactions.findIndex(trans => trans.id === id)
-        if (index === -1) {
-            return false
-        }
-
-        this.transactions[index] = { id, user_id, ...newTransaction }
-        return true
+        const stmt = db.prepare(
+            'UPDATE transactions SET type = ?, descript = ?, amount = ?, category = ?, wallet = ?, date = ? WHERE id = ? AND user_id = ?'
+        )
+        const result = stmt.run(
+            newTransaction.type,
+            newTransaction.descript,
+            newTransaction.amount,
+            newTransaction.category,
+            newTransaction.wallet,
+            newTransaction.date,
+            id,
+            user_id
+        )
+        return result.changes > 0
     }
 
     deleteTransaction(id) {
-        const newTransactionList = this.transactions.filter(trans => trans.id !== id)
-
-        this.transactions = newTransactionList
+        db.prepare('DELETE FROM transactions WHERE id = ?').run(id)
     }
 
     getIncomeAndExpense(user_id, bulan, tahun) {
@@ -64,15 +66,15 @@ class TransactionsRepositories {
 
         const periode = `${tahun}-${targetBulan}`
 
-        const income = this.transactions.filter(trans => {
-            return trans.user_id === user_id && trans.date.startsWith(periode) && trans.type === 'Pemasukan'
-        })
+        const income = db
+            .prepare('SELECT * FROM transactions WHERE user_id = ? AND strftime("%Y-%m", date) = ? AND type = ? ORDER BY date DESC')
+            .all(user_id, periode, 'Pemasukan')
 
-        const expense = this.transactions.filter(trans => {
-            return trans.user_id === user_id && trans.date.startsWith(periode) && trans.type === 'Pengeluaran'
-        })
+        const expense = db
+            .prepare('SELECT * FROM transactions WHERE user_id = ? AND strftime("%Y-%m", date) = ? AND type = ? ORDER BY date DESC')
+            .all(user_id, periode, 'Pengeluaran')
 
-        return {income, expense}
+        return { income, expense }
     }
 }
 
