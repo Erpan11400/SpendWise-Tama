@@ -13,6 +13,20 @@ import { getBudget, getWallet } from '../utils/requestAPi';
 import PeriodeDropdown from '../components/PeriodeDropdown';
 import ChartComponent from '../components/ChartComponent';
 
+const monthNames = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+const currentDate = new Date();
+const currentMonthName = monthNames[currentDate.getMonth()];
+const currentYear = String(currentDate.getFullYear());
+
+const nextDate = new Date(currentDate);
+nextDate.setMonth(currentDate.getMonth() + 1);
+const nextYear = String(nextDate.getFullYear());
+const yearOptions = Array.from(new Set([currentYear, nextYear]));
+
 export default function Dashboard() {
   const { userName } = useAppContext().user
   const [budgets, setBudgets] = useState([])
@@ -23,8 +37,8 @@ export default function Dashboard() {
   const [editModal, setEditModal] = useState(false)
   const [editBudgetId, setEditBudgetId] = useState('')
 
-  const [bulan, setBulan] = useState('Mei')
-  const [tahun, setTahun] = useState('2026')
+  const [bulan, setBulan] = useState(currentMonthName)
+  const [tahun, setTahun] = useState(currentYear)
 
   const showEditModal = (id, show) => {
     setEditBudgetId(id)
@@ -65,7 +79,14 @@ export default function Dashboard() {
             <p className='m-0'>Hallo, {userName}! 🙌</p>
           </div>
         </div>
-        <PeriodeDropdown bulan={bulan} setBulan={setBulan} tahun={tahun} setTahun={setTahun} />
+        <PeriodeDropdown
+          bulan={bulan}
+          setBulan={setBulan}
+          tahun={tahun}
+          setTahun={setTahun}
+          monthOptions={monthNames}
+          yearOptions={yearOptions}
+        />
       </div>
 
       {/* Cash */}

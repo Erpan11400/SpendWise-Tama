@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid'
+import db from '../../../database/sqlite.js';
 
 /* 
  * user_id
@@ -6,134 +6,77 @@ import { nanoid } from 'nanoid'
  * amount */
 
 class WalletsRepositories {
-    constructor() {
-        this.wallets = []
-    }
-
     getAllWallets(user_id) {
-        const user_wallets = this.wallets.filter(wallet => wallet.user_id === user_id)
+        let wallets = db
+            .prepare('SELECT user_id, name, amount FROM wallets WHERE user_id = ?')
+            .all(user_id)
 
-        return user_wallets
+        if (wallets.length === 0) {
+            this.addWallets(user_id)
+            wallets = db
+                .prepare('SELECT user_id, name, amount FROM wallets WHERE user_id = ?')
+                .all(user_id)
+        }
+
+        return wallets
     }
 
     addWallets(user_id) {
-        const BCAWallet = { user_id, name: "BCA", amount: 0 }
-        const CashWallet = { user_id, name: "Cash", amount: 0 }
-        const OVOWallet = { user_id, name: "OVO", amount: 0 }
-        const DanaWallet = { user_id, name: "Dana", amount: 0 }
-        const MandiriWallet = { user_id, name: "Mandiri", amount: 0 }
+        const stmt = db.prepare('INSERT OR IGNORE INTO wallets (user_id, name, amount) VALUES (?, ?, 0)')
+        const wallets = ['BCA', 'Cash', 'OVO', 'Dana', 'Mandiri']
 
-
-        this.wallets.push(BCAWallet)
-        this.wallets.push(CashWallet)
-        this.wallets.push(OVOWallet)
-        this.wallets.push(DanaWallet)
-        this.wallets.push(MandiriWallet)
+        wallets.forEach((name) => {
+            stmt.run(user_id, name)
+        })
     }
 
     updateWalletByTransaction(user_id, name, amount) {
-        const index = this.wallets.findIndex(wallet => wallet.user_id === user_id && wallet.name === name)
-        if (index === -1) {
-            return false
-        }
-
-        this.wallets[index].amount += amount
-        return true
+        const stmt = db.prepare('UPDATE wallets SET amount = amount + ? WHERE user_id = ? AND name = ?')
+        const result = stmt.run(amount, user_id, name)
+        return result.changes > 0
     }
 
     updateByEditTransaction(oldTransaction, newTransaction) {
-        let index = -1
+        const update = (user_id, name, delta) => {
+            const stmt = db.prepare('UPDATE wallets SET amount = amount + ? WHERE user_id = ? AND name = ?')
+            const result = stmt.run(delta, user_id, name)
+            return result.changes > 0
+        }
 
         if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pemasukan') {
             if (oldTransaction.wallet === newTransaction.wallet) {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === newTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-
-                this.wallets[index].amount -= oldTransaction.amount
-                this.wallets[index].amount += newTransaction.amount
-            } else {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount -= oldTransaction.amount
-
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === newTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount += newTransaction.amount
+                return update(oldTransaction.user_id, newTransaction.wallet, -oldTransaction.amount) &&
+                    update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
             }
-        } else if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pengeluaran') {
-            if (oldTransaction.wallet === newTransaction.wallet) {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-
-                this.wallets[index].amount -= oldTransaction.amount
-                this.wallets[index].amount += newTransaction.amount
-            } else {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount -= oldTransaction.amount
-
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === newTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount += newTransaction.amount
-            }
-        } else if (oldTransaction.type === 'Pengeluaran' && newTransaction.type === 'Pemasukan') {
-            if (oldTransaction.wallet === newTransaction.wallet) {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-
-                this.wallets[index].amount -= oldTransaction.amount
-                this.wallets[index].amount += newTransaction.amount
-            } else {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount -= oldTransaction.amount
-
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === newTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount += newTransaction.amount
-            }
-        } else {
-            if (oldTransaction.wallet === newTransaction.wallet) {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-
-                this.wallets[index].amount -= oldTransaction.amount
-                this.wallets[index].amount += newTransaction.amount
-            } else {
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === oldTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount -= oldTransaction.amount
-
-                index = this.wallets.findIndex(wallet => wallet.user_id === oldTransaction.user_id && wallet.name === newTransaction.wallet)
-                if (index === -1) {
-                    return false
-                }
-                this.wallets[index].amount += newTransaction.amount
-            }
+            return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
         }
-        return true
+
+        if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pengeluaran') {
+            if (oldTransaction.wallet === newTransaction.wallet) {
+                return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                    update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
+            }
+            return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
+        }
+
+        if (oldTransaction.type === 'Pengeluaran' && newTransaction.type === 'Pemasukan') {
+            if (oldTransaction.wallet === newTransaction.wallet) {
+                return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                    update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
+            }
+            return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
+        }
+
+        if (oldTransaction.wallet === newTransaction.wallet) {
+            return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+                update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
+        }
+
+        return update(oldTransaction.user_id, oldTransaction.wallet, -oldTransaction.amount) &&
+            update(newTransaction.user_id, newTransaction.wallet, newTransaction.amount)
     }
 }
 

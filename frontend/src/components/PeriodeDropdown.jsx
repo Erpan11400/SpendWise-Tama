@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export default function PeriodeDropdown({ bulan, setBulan, tahun, setTahun }) {
+export default function PeriodeDropdown({ bulan, setBulan, tahun, setTahun, monthOptions, yearOptions }) {
   return (
     <div className='bg-purple rounded-3' style={{ width: '150px', paddingRight: '7px', paddingBottom: '7px' }}>
       <div className='bg-gray d-flex flex-column p-2 rounded-3' style={{ width: '150px' }}>
@@ -12,18 +12,9 @@ export default function PeriodeDropdown({ bulan, setBulan, tahun, setTahun }) {
           onChange={(e) => setBulan(e.target.value)}
           style={{ cursor: 'pointer' }}
         >
-          <option value="Januari">Januari</option>
-          <option value="Februari">Februari</option>
-          <option value="Maret">Maret</option>
-          <option value="April">April</option>
-          <option value="Mei">Mei</option>
-          <option value="Juni">Juni</option>
-          <option value="Juli">Juli</option>
-          <option value="Agustus">Agustus</option>
-          <option value="September">September</option>
-          <option value="Oktober">Oktober</option>
-          <option value="November">November</option>
-          <option value="Desember">Desember</option>
+          {monthOptions.map((month) => (
+            <option key={month} value={month}>{month}</option>
+          ))}
         </select>
 
         <select 
@@ -32,9 +23,9 @@ export default function PeriodeDropdown({ bulan, setBulan, tahun, setTahun }) {
           onChange={(e) => setTahun(e.target.value)}
           style={{ cursor: 'pointer', fontSize: '0.85rem' }}
         >
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-          <option value="2027">2027</option>
+          {yearOptions.map((year) => (
+            <option key={year} value={year}>{year}</option>
+          ))}
         </select>
       </div>
     </div>

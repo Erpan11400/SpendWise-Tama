@@ -1,62 +1,51 @@
 import bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
-/* 
- * id
- * fullName
- * userName
- * email
- * password 
- */
-
-// export const users = []
-
+import db from '../../../database/sqlite.js';
 
 class Users {
-    constructor() {
-        this.users = []
-    }
-
     async createUser(fullName, userName, email, password) {
         const id = `user-${nanoid(16)}`
         const hashedPass = await bcrypt.hash(password, 10)
         const created_at = new Date().toISOString()
 
-        const newUser = { id, fullName, userName, email, password: hashedPass, created_at }
+        const stmt = db.prepare(
+            'INSERT INTO users (id, full_name, user_name, email, password, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+        )
+        stmt.run(id, fullName, userName, email, hashedPass, created_at)
 
-        this.users.push(newUser)
         return id
     }
 
     getAllUsers() {
-        return this.users
+        return db.prepare(
+            'SELECT id, full_name AS fullName, user_name AS userName, email, created_at FROM users ORDER BY created_at DESC'
+        ).all()
     }
 
     deleteUser(id) {
-        const index = this.users.findIndex(user => user.id === id)
-        if (index === -1) {
-            return false
-        }
-
-        this.users.splice(index, 1)
+        const stmt = db.prepare('DELETE FROM users WHERE id = ?')
+        const result = stmt.run(id)
+        return result.changes > 0
     }
 
     async verifyUsersCredential(email, password) {
-        const user = this.users.find(user => user.email === email)
+        const user = db.prepare('SELECT id, password FROM users WHERE email = ?').get(email)
         if (!user) {
             return null
         }
 
-        const { id, password: passEncrypted } = user
-        const passwordIsTrue = await bcrypt.compare(password, passEncrypted)
+        const passwordIsTrue = await bcrypt.compare(password, user.password)
         if (!passwordIsTrue) {
             return null
         }
 
-        return id
+        return user.id
     }
 
     getUserById(id) {
-        return this.users.find(user => user.id === id)
+        return db
+            .prepare('SELECT id, full_name AS fullName, user_name AS userName, email, created_at FROM users WHERE id = ?')
+            .get(id)
     }
 }
 

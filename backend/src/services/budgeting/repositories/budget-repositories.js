@@ -1,4 +1,5 @@
-import { nanoid } from "nanoid";
+import { nanoid } from 'nanoid';
+import db from '../../../database/sqlite.js';
 
 /* 
  * id
@@ -9,123 +10,94 @@ import { nanoid } from "nanoid";
  */
 
 class BudgetRepositories {
-    constructor() {
-        this.budgets = []
-    }
-
     addBudget(user_id, name, allocation) {
         const id = `bud-${nanoid(16)}`
         const created_at = new Date().toISOString()
 
-        const newBudget = { id, user_id, name, used: 0, allocation, created_at }
-
-        this.budgets.push(newBudget)
+        db.prepare(
+            'INSERT INTO budgets (id, user_id, name, used, allocation, created_at) VALUES (?, ?, ?, 0, ?, ?)'
+        ).run(id, user_id, name, allocation, created_at)
 
         return id
     }
 
     getAllBudgeting(user_id, namaBulan, stringTahun) {
         const mapBulan = {
-            'Januari': 0, 'Februari': 1, 'Maret': 2, 'April': 3, 'Mei': 4, 'Juni': 5,
-            'Juli': 6, 'Agustus': 7, 'September': 8, 'Oktober': 9, 'November': 10, 'Desember': 11
+            'Januari': '01', 'Februari': '02', 'Maret': '03', 'April': '04', 'Mei': '05', 'Juni': '06',
+            'Juli': '07', 'Agustus': '08', 'September': '09', 'Oktober': '10', 'November': '11', 'Desember': '12'
         };
 
         const targetBulan = mapBulan[namaBulan];
-        const targetTahun = Number(stringTahun);
+        const targetTahun = String(Number(stringTahun));
 
-        if (targetBulan === undefined || isNaN(targetTahun)) {
+        if (!targetBulan || Number.isNaN(Number(targetTahun))) {
             return [];
         }
 
-        return this.budgets.filter(budget => {
-            if (budget.user_id !== user_id) return false;
-
-            const date = new Date(budget.created_at);
-
-            return date.getFullYear() === targetTahun && date.getMonth() === targetBulan;
-        });
+        return db
+            .prepare(
+                'SELECT * FROM budgets WHERE user_id = ? AND strftime("%Y", created_at) = ? AND strftime("%m", created_at) = ?'
+            )
+            .all(user_id, targetTahun, targetBulan)
     }
 
     getAllBudget() {
-        return this.budgets
+        return db.prepare('SELECT * FROM budgets ORDER BY created_at DESC').all()
     }
 
     getBudgetById(id) {
-        const budget = this.budgets.find(budget => budget.id === id)
-
-        return budget
+        return db.prepare('SELECT * FROM budgets WHERE id = ?').get(id)
     }
 
     editBudget(budget_id, name, allocation) {
-        const editedBudget = this.budgets.map((budget) => {
-            if (budget.id !== budget_id) return budget
-
-            return { ...budget, name, allocation }
-        })
-
-        this.budgets = editedBudget
+        db.prepare('UPDATE budgets SET name = ?, allocation = ? WHERE id = ?').run(name, allocation, budget_id)
     }
 
     updateByTransaction(user_id, name, amount) {
-        const index = this.budgets.findIndex(budget => budget.user_id === user_id && budget.name === name)
-        if (index === -1) {
-            return false
-        }
+        const result = db
+            .prepare('UPDATE budgets SET used = used - ? WHERE user_id = ? AND name = ?')
+            .run(amount, user_id, name)
 
-        this.budgets[index].used -= amount
-        return true
+        return result.changes > 0
     }
 
     updateByEditTransaction(oldTransaction, newTransaction) {
-        let index = -1
+        const updateUsed = (user_id, name, delta) => {
+            const result = db
+                .prepare('UPDATE budgets SET used = used + ? WHERE user_id = ? AND name = ?')
+                .run(delta, user_id, name)
+            return result.changes > 0
+        }
 
         if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pemasukan') {
             return true
-        } else if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pengeluaran') {
-            index = this.budgets.findIndex(budget => budget.user_id === oldTransaction.user_id && budget.name === newTransaction.category)
-            if (index === -1) {
-                return false
-            }
-            this.budgets[index].used -= newTransaction.amount
-        } else if (oldTransaction.type === 'Pengeluaran' && newTransaction.type === 'Pemasukan') {
-            index = this.budgets.findIndex(budget => budget.user_id === oldTransaction.user_id && budget.name === oldTransaction.category)
-            if (index === -1) {
-                return false
-            }
-            this.budgets[index].used += oldTransaction.amount
-        } else {
-            if (oldTransaction.category === newTransaction.category) {
-                index = this.budgets.findIndex(budget => budget.user_id === oldTransaction.user_id && budget.name === newTransaction.category)
-                if (index === -1) {
-                    return false
-                }
-                this.budgets[index].used += oldTransaction.amount
-                this.budgets[index].used -= newTransaction.amount
-            } else {
-                index = this.budgets.findIndex(budget => budget.user_id === oldTransaction.user_id && budget.name === oldTransaction.category)
-                if (index === -1) {
-                    return false
-                }
-                this.budgets[index].used += oldTransaction.amount
-
-                index = this.budgets.findIndex(budget => budget.user_id === newTransaction.user_id && budget.name === newTransaction.category)
-                if (index === -1) {
-                    return false
-                }
-                this.budgets[index].used -= oldTransaction.amount
-            }
         }
-        return true
+
+        if (oldTransaction.type === 'Pemasukan' && newTransaction.type === 'Pengeluaran') {
+            return updateUsed(oldTransaction.user_id, newTransaction.category, -newTransaction.amount)
+        }
+
+        if (oldTransaction.type === 'Pengeluaran' && newTransaction.type === 'Pemasukan') {
+            return updateUsed(oldTransaction.user_id, oldTransaction.category, oldTransaction.amount)
+        }
+
+        if (oldTransaction.category === newTransaction.category) {
+            return updateUsed(oldTransaction.user_id, newTransaction.category, oldTransaction.amount - newTransaction.amount)
+        }
+
+        return (
+            updateUsed(oldTransaction.user_id, oldTransaction.category, oldTransaction.amount) &&
+            updateUsed(newTransaction.user_id, newTransaction.category, -oldTransaction.amount)
+        )
     }
 
     searchBudgeting(name) {
-        return this.budgets.some(budget => budget.name === name)
+        const row = db.prepare('SELECT 1 FROM budgets WHERE name = ? LIMIT 1').get(name)
+        return Boolean(row)
     }
 
     deleteBudget(id) {
-        const deletedBudget = this.budgets.filter(budget => budget.id !== id)
-
-        this.budgets = deletedBudget
+        db.prepare('DELETE FROM budgets WHERE id = ?').run(id)
     }
 }
 
