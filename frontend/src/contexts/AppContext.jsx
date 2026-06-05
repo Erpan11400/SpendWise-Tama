@@ -4,44 +4,44 @@ export const createdContext = createContext()
 
 export const AppProvider = ({ children }) => {
     const [user, setUser] = useState(
-        // {
-        //     fullName: 'Ervan Setyatama',
-        //     username: 'Tama',
-        //     email: 'tama@gg.com',
-        //     password: 'tama1234',
-        //     budgets: [
-        //         // { id: 'bud-1', name: 'Makan', used: 50000, allocation: 100000 },
-        //         // { id: 'bud-2', name: 'Transport', used: 0, allocation: 50000 },
-        //         // { id: 'bud-3', name: 'Kost', used: 650000, allocation: 750000 }
-        //     ],
-        //     wallets: [
-        //         { id: 'wlt-1', name: "BCA", amount: 1000000 },
-        //         { id: 'wlt-2', name: "Cash", amount: 300000 },
-        //         { id: 'wlt-3', name: "OVO", amount: 500000 },
-        //         { id: 'wlt-4', name: "Dana", amount: 400000 },
-        //     ],
-        //     transactions: [
-        //         // {
-        //         //     id: 'tr-1',
-        //         //     type: 'Pengeluaran',
-        //         //     descript: 'Makan',
-        //         //     amount: -100000,
-        //         //     category: 'Makan',
-        //         //     date: '2025-12-12',
-        //         //     wallet: 'BCA'
-        //         // },
-        //         // {
-        //         //     id: 'tr-2',
-        //         //     type: 'Pemasukan',
-        //         //     descript: 'Ambil duit',
-        //         //     amount: 100000,
-        //         //     category: 'Makan',
-        //         //     date: '2025-12-12',
-        //         //     wallet: 'BCA'
-        //         // }
-        //     ]
-        // }
-        null
+        {
+            fullName: 'Ervan Setyatama',
+            username: 'Tama',
+            email: 'tama@gg.com',
+            password: 'tama1234',
+            budgets: [
+                // { id: 'bud-1', name: 'Makan', used: 50000, allocation: 100000 },
+                // { id: 'bud-2', name: 'Transport', used: 0, allocation: 50000 },
+                // { id: 'bud-3', name: 'Kost', used: 650000, allocation: 750000 }
+            ],
+            wallets: [
+                { id: 'wlt-1', name: "BCA", amount: 0 },
+                { id: 'wlt-2', name: "Cash", amount: 0 },
+                { id: 'wlt-3', name: "OVO", amount: 0 },
+                { id: 'wlt-4', name: "Dana", amount: 0 },
+            ],
+            transactions: [
+                // {
+                //     id: 'tr-1',
+                //     type: 'Pengeluaran',
+                //     descript: 'Makan',
+                //     amount: -100000,
+                //     category: 'Makan',
+                //     date: '2025-12-12',
+                //     wallet: 'BCA'
+                // },
+                // {
+                //     id: 'tr-2',
+                //     type: 'Pemasukan',
+                //     descript: 'Ambil duit',
+                //     amount: 100000,
+                //     category: 'Makan',
+                //     date: '2025-12-12',
+                //     wallet: 'BCA'
+                // }
+            ]
+        }
+        // null
     )
 
     const addBudget = (newBudget) => {
